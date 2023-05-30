@@ -3,6 +3,11 @@ import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import recipeView from './views/recipeView'
 
+// const recipeContainer = document.querySelector('.recipe');
+
+
+
+
 const controlRecipes = async () => {
   try {
 
