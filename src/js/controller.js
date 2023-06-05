@@ -2,38 +2,70 @@ import * as model from './model'
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import recipeView from './views/recipeView'
+import searchView from './views/searchView'
+import resultsView from './views/resultsView'
 
-// const recipeContainer = document.querySelector('.recipe');
-
-
-
+if (module.hot) {
+module.hot.accept();  
+}
 
 const controlRecipes = async () => {
   try {
 
+    // Get the ID from the window location hash and assign it to the 'id' variable
     const id = window.location.hash.slice(1);
-    console.log(id);
+    // console.log(id);
 
-    //guard clause
+    // Guard clause: If 'id' is falsy (empty), return and exit the function
     if(!id) return;
+
+    // Call the 'renderSpinner' method of the 'recipeView' object to display a loading spinner
     recipeView.renderSpinner();
 
    //1.loading the recipe
-   //the recipe is loaded here and will store data in state object
+  // Use the 'loadRecipe' method from the 'model' module to load the recipe data
     await model.loadRecipe(id)
 
-    //2.rendering recipe
-    //data passed into render method
+    // Call the 'render' method of the 'recipeView' object and pass in the 'recipe' property from the 'state' object
     recipeView.render(model.state.recipe);
     
   } catch (error) {
-    console.log(error)
+    recipeView.renderError();
   }
 }
 
-// ['HashChange','load'].forEach(ev => window.addEventListener(ev,controlRecipes))
+const controlSearchResults = async function(){
+  try {
 
-//duplicate code
-//controlRecipes is a handler function
-window.addEventListener('hashchange', controlRecipes)
-window.addEventListener('load', controlRecipes)
+    //get search query
+    const query = searchView.getQuery();
+    if(!query) return;
+
+    resultsView.renderSpinner();
+
+    //Load search results
+    await model.loadSearchResults(query);
+
+    //Render search results
+    console.log('model data',model.state.search.results);
+    resultsView.render(model.state.search.results);
+
+    
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+controlSearchResults();
+
+// Define an initialization function called 'init'
+const init = function() {
+// Call the 'addHandlerRender' method of the 'recipeView' object and pass in the 'controlRecipes' function as a callback
+// This sets up an event handler to render the recipe when triggered
+  recipeView.addHandlerRender(controlRecipes)
+  searchView.addHandlerSearch(controlSearchResults)
+}
+
+// Call the 'init' function to initialize the application
+init();
+
