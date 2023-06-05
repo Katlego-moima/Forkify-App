@@ -5,9 +5,9 @@ import recipeView from './views/recipeView'
 import searchView from './views/searchView'
 import resultsView from './views/resultsView'
 
-if (module.hot) {
-module.hot.accept();  
-}
+// if (module.hot) {
+// module.hot.accept();  
+// }
 
 const controlRecipes = async () => {
   try {
@@ -47,8 +47,11 @@ const controlSearchResults = async function(){
     await model.loadSearchResults(query);
 
     //Render search results
-    console.log('model data',model.state.search.results);
-    resultsView.render(model.state.search.results);
+    // console.log('model data',model.state.search.results);
+    // resultsView.render(model.state.search.results);
+
+    // console.log(model.getSearchResultsPage(1));
+    resultsView.render(model.getSearchResultsPage());
 
     
   } catch (error) {
