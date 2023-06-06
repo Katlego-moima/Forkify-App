@@ -600,7 +600,7 @@ const controlSearchResults = async function() {
         //Load search results
         await _model.loadSearchResults(query);
         //Render search results
-        (0, _resultsViewDefault.default).render(_model.getSearchResultsPage(4));
+        (0, _resultsViewDefault.default).render(_model.getSearchResultsPage());
         //render initial  pagination buttons
         (0, _paginationViewDefault.default).render(_model.state.search);
     } catch (error) {
@@ -608,12 +608,19 @@ const controlSearchResults = async function() {
     }
 };
 controlSearchResults();
+const controlPagination = function(goToPage) {
+    //Render new results
+    (0, _resultsViewDefault.default).render(_model.getSearchResultsPage(goToPage));
+    //render new pagination buttons
+    (0, _paginationViewDefault.default).render(_model.state.search);
+};
 // Define an initialization function called 'init'
 const init = function() {
     // Call the 'addHandlerRender' method of the 'recipeView' object and pass in the 'controlRecipes' function as a callback
     // This sets up an event handler to render the recipe when triggered
     (0, _recipeViewDefault.default).addHandlerRender(controlRecipes);
     (0, _searchViewDefault.default).addHandlerSearch(controlSearchResults);
+    (0, _paginationViewDefault.default).addHandlerClick(controlPagination);
 };
 // Call the 'init' function to initialize the application
 init();
@@ -3262,13 +3269,22 @@ var _iconsSvg = require("../../img/icons.svg");
 var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
 class PaginationView extends (0, _viewDefault.default) {
     _parentElement = document.querySelector(".pagination");
+    addHandlerClick(handler) {
+        this._parentElement.addEventListener("click", function(e) {
+            const btn = e.target.closest(".btn--inline");
+            console.log(btn);
+            if (!btn) return;
+            const goToPage = +btn.dataset.goto;
+            handler(goToPage);
+        });
+    }
     _generateMarkup() {
         const curPage = this._data.page;
         const numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage);
         console.log(numPages);
         //Page 1 and there are no other pages
         if (curPage === 1 && numPages > 1) return `
-           <button class="btn--inline pagination__btn--next">
+           <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
             <span>Page ${curPage + 1}</span>
             <svg class="search__icon">
               <use href="${0, _iconsSvgDefault.default}#icon-arrow-right"></use>
@@ -3277,7 +3293,7 @@ class PaginationView extends (0, _viewDefault.default) {
            `;
         //last page
         if (curPage === numPages && numPages > 1) return `
-             <button class="btn--inline pagination__btn--prev">
+             <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
             <svg class="search__icon">
               <use href="${0, _iconsSvgDefault.default}#icon-arrow-left"></use>
             </svg>
@@ -3287,13 +3303,13 @@ class PaginationView extends (0, _viewDefault.default) {
             `;
         //other page
         if (curPage < numPages) return `
-            <button class="btn--inline pagination__btn--prev">
+            <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
            <svg class="search__icon">
              <use href="${0, _iconsSvgDefault.default}#icon-arrow-left"></use>
            </svg>
            <span>Page ${curPage - 1}</span>
          </button>
-         <button class="btn--inline pagination__btn--next">
+         <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
           <span>Page ${curPage + 1}</span>
           <svg class="search__icon">
             <use href="${0, _iconsSvgDefault.default}#icon-arrow-right"></use>

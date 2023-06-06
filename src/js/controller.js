@@ -4,7 +4,6 @@ import 'regenerator-runtime/runtime';
 import recipeView from './views/recipeView'
 import searchView from './views/searchView'
 import resultsView from './views/resultsView'
-import pagination from './views/paginationView'
 import paginationView from './views/paginationView';
 
 // if (module.hot) {
@@ -49,7 +48,7 @@ const controlSearchResults = async function(){
     await model.loadSearchResults(query);
 
     //Render search results
-    resultsView.render(model.getSearchResultsPage(4));
+    resultsView.render(model.getSearchResultsPage());
 
     //render initial  pagination buttons
     paginationView.render(model.state.search)
@@ -62,12 +61,23 @@ const controlSearchResults = async function(){
 
 controlSearchResults();
 
+
+const controlPagination = function(goToPage) {
+  //Render new results
+  resultsView.render(model.getSearchResultsPage(goToPage));
+
+  //render new pagination buttons
+  paginationView.render(model.state.search)
+  
+}
+
 // Define an initialization function called 'init'
 const init = function() {
 // Call the 'addHandlerRender' method of the 'recipeView' object and pass in the 'controlRecipes' function as a callback
 // This sets up an event handler to render the recipe when triggered
   recipeView.addHandlerRender(controlRecipes)
   searchView.addHandlerSearch(controlSearchResults)
+  paginationView.addHandlerClick(controlPagination)
 }
 
 // Call the 'init' function to initialize the application
