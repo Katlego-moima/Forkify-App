@@ -582,6 +582,8 @@ const controlRecipes = async ()=>{
         if (!id) return;
         // Call the 'renderSpinner' method of the 'recipeView' object to display a loading spinner
         (0, _recipeViewDefault.default).renderSpinner();
+        //0. update result view to mark selected search result
+        (0, _resultsViewDefault.default).render(_model.getSearchResultsPage());
         //1.loading the recipe
         // Use the 'loadRecipe' method from the 'model' module to load the recipe data
         await _model.loadRecipe(id);
@@ -614,11 +616,24 @@ const controlPagination = function(goToPage) {
     //render new pagination buttons
     (0, _paginationViewDefault.default).render(_model.state.search);
 };
+const controlAddBookmark = function() {
+    _model.addBookmark(_model.state.recipe);
+    console.log(_model.state.recipe);
+    (0, _recipeViewDefault.default).update(_model.state.recipe);
+};
+const controlServings = function(newServings) {
+    //Update the recipe servings (in state)
+    _model.updateServings(newServings);
+    //Update the recipe view
+    (0, _recipeViewDefault.default).update(_model.state.recipe);
+};
 // Define an initialization function called 'init'
 const init = function() {
     // Call the 'addHandlerRender' method of the 'recipeView' object and pass in the 'controlRecipes' function as a callback
     // This sets up an event handler to render the recipe when triggered
     (0, _recipeViewDefault.default).addHandlerRender(controlRecipes);
+    (0, _recipeViewDefault.default).addHandlerUpdateServings(controlServings);
+    (0, _recipeViewDefault.default).addHandlerAddBookmark(controlAddBookmark);
     (0, _searchViewDefault.default).addHandlerSearch(controlSearchResults);
     (0, _paginationViewDefault.default).addHandlerClick(controlPagination);
 };
@@ -2055,6 +2070,8 @@ parcelHelpers.export(exports, "state", ()=>state);
 parcelHelpers.export(exports, "loadRecipe", ()=>loadRecipe);
 parcelHelpers.export(exports, "loadSearchResults", ()=>loadSearchResults);
 parcelHelpers.export(exports, "getSearchResultsPage", ()=>getSearchResultsPage);
+parcelHelpers.export(exports, "updateServings", ()=>updateServings);
+parcelHelpers.export(exports, "addBookmark", ()=>addBookmark);
 var _config = require("./config");
 var _helpers = require("./helpers");
 const state = {
@@ -2064,7 +2081,8 @@ const state = {
         results: [],
         page: 1,
         resultsPerPage: (0, _config.RES_PER_PAGE)
-    }
+    },
+    bookmarks: []
 };
 const loadRecipe = async function(id) {
     try {
@@ -2101,6 +2119,7 @@ const loadSearchResults = async function(query) {
                 image: rec.image_url
             };
         });
+        state.search.page = 1;
     } catch (error) {
         // console.log(error);
         throw error;
@@ -2113,6 +2132,18 @@ const getSearchResultsPage = function(page = state.search.page) {
     const end = page * state.search.resultsPerPage;
     //return part of the results
     return state.search.results.slice(start, end);
+};
+const updateServings = function(newServings) {
+    state.recipe.ingredients.forEach((ing)=>{
+        ing.quantity = ing.quantity * newServings / state.recipe.servings;
+    });
+    state.recipe.servings = newServings;
+};
+const addBookmark = function(recipe) {
+    //add bookmark
+    state.bookmarks.push(recipe);
+    //mark current recipe as bookmark
+    if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
 };
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./config":"k5Hzs","./helpers":"hGI1E"}],"k5Hzs":[function(require,module,exports) {
@@ -2762,6 +2793,21 @@ class RecipeView extends (0, _viewDefault.default) {
             window.addEventListener(event, handler);
         });
     }
+    addHandlerUpdateServings(handler) {
+        this._parentElement.addEventListener("click", function(e) {
+            const btn = e.target.closest(".btn--update-servings");
+            if (!btn) return;
+            const { updateTo  } = btn.dataset;
+            if (+updateTo > 0) handler(+updateTo);
+        });
+    }
+    addHandlerAddBookmark(handler) {
+        this._parentElement.addEventListener("click", function(e) {
+            const btn = e.target.closest(".btn--bookmark");
+            if (!btn) return;
+            handler();
+        });
+    }
     _generateMarkup() {
         return `
         <figure class="recipe__fig">
@@ -2787,12 +2833,12 @@ class RecipeView extends (0, _viewDefault.default) {
             <span class="recipe__info-text">servings</span>
 
             <div class="recipe__info-buttons">
-              <button class="btn--tiny btn--increase-servings">
+              <button class="btn--tiny btn--update-servings" data-update-to="${this._data.servings - 1}">
                 <svg>
                   <use href="${0, _iconsSvgDefault.default}#icon-minus-circle"></use>
                 </svg>
               </button>
-              <button class="btn--tiny btn--increase-servings">
+              <button class="btn--tiny btn--update-servings" data-update-to="${this._data.servings + 1}">
                 <svg>
                   <use href="${0, _iconsSvgDefault.default}#icon-plus-circle"></use>
                 </svg>
@@ -2803,9 +2849,9 @@ class RecipeView extends (0, _viewDefault.default) {
           <div class="recipe__user-generated">
            
           </div>
-          <button class="btn--round">
+          <button class="btn--round btn--bookmark">
             <svg class="">
-              <use href="${0, _iconsSvgDefault.default}#icon-bookmark-fill"></use>
+              <use href="${0, _iconsSvgDefault.default}#icon-bookmark ${this._data.bookmarked ? "-fill" : ""}"></use>
             </svg>
           </button>
         </div>
@@ -3160,6 +3206,27 @@ class View {
         this._clear();
         this._parentElement.insertAdjacentHTML("afterbegin", markup);
     }
+    update(data) {
+        if (!data || Array.isArray(data) && data.length === 0) return this.renderError();
+        this._data = data;
+        const newMarkup = this._generateMarkup();
+        //convert the string to DOM element
+        const newDOM = document.createRange().createContextualFragment(newMarkup);
+        const newElements = Array.from(newDOM.querySelectorAll("*"));
+        const curElements = Array.from(this._parentElement.querySelectorAll("*"));
+        newElements.forEach((newEl, i)=>{
+            const curEl = curElements[i];
+            console.log(newEl.isEqualNode(curEl));
+            //Updates changed text
+            if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== "") curEl.textContent = newEl.textContent;
+            //updates changed attributes
+            //notes: replacing all the attributes from curEl with the attributes from the newEl
+            if (!newEl.isEqualNode(curEl)) {
+                console.log(Array.from(newEl.attributes));
+                Array.from(newEl.attributes).forEach((attr)=>curEl.setAttribute(attr.name, attr.value));
+            }
+        });
+    }
     _clear() {
         this._parentElement.innerHTML = "";
     }
@@ -3243,9 +3310,10 @@ class ResultsView extends (0, _viewDefault.default) {
         return this._data.map(this._generateMarkupPreview).join("");
     }
     _generateMarkupPreview(result) {
+        const id = window.location.hash.slice(1);
         return `
         <li class="preview">
-        <a class="preview__link" href="#${result.id}">
+        <a class="preview__link ${result.id === id ? "preview__link--active" : ""}" href="#${result.id}">
           <figure class="preview__fig">
             <img src="${result.image}" alt="${result.title}" />
           </figure>

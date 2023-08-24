@@ -11,6 +11,7 @@ export const state = {
         page: 1,
         resultsPerPage: RES_PER_PAGE,
     },
+    bookmarks: [],
 }
 
 // Define an asynchronous function called "loadRecipe" that takes an "id" parameter
@@ -55,13 +56,14 @@ export const loadSearchResults = async function(query) {
                     image:rec.image_url,
                 }
             });
-            
+            state.search.page = 1;
             
     } catch (error) {
         // console.log(error);
         throw error;
     }
 }
+
 
 export const getSearchResultsPage = function(page = state.search.page) {
 
@@ -74,4 +76,22 @@ export const getSearchResultsPage = function(page = state.search.page) {
     //return part of the results
     return state.search.results.slice(start, end);
 
+}
+
+export const updateServings = function(newServings) {
+    state.recipe.ingredients.forEach(ing => {
+    ing.quantity = (ing.quantity * newServings) / state.recipe.servings;
+        
+    });
+    state.recipe.servings = newServings;
+
+    }
+
+export const addBookmark = function (recipe) {
+    //add bookmark
+    state.bookmarks.push(recipe);
+
+    //mark current recipe as bookmark
+
+    if(recipe.id === state.recipe.id) state.recipe.bookmarked = true;
 }
