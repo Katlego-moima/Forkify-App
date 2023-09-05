@@ -5,16 +5,17 @@ export default class View {
   _data;
   //assigning the value of data to a private property
   //public method
-  render(data) {
-
+  render(data, render = true) {
     if (!data || (Array.isArray(data) && data.length === 0))
-      return this.renderError()
-
+      return this.renderError();
 
     this._data = data;
     const markup = this._generateMarkup();
+
+    if (!render) return markup;
+
     this._clear();
-    this._parentElement.insertAdjacentHTML('afterbegin', markup)
+    this._parentElement.insertAdjacentHTML('afterbegin', markup);
   }
 
   update(data) {
@@ -33,7 +34,10 @@ export default class View {
       const curEl = curElements[i];
       // console.log(newEl.isEqualNode(curEl));
       //Updates changed text
-      if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== '') {
+      if (
+        !newEl.isEqualNode(curEl) &&
+        newEl.firstChild?.nodeValue.trim() !== ''
+      ) {
         curEl.textContent = newEl.textContent;
       }
 
@@ -41,15 +45,14 @@ export default class View {
       //notes: replacing all the attributes from curEl with the attributes from the newEl
       if (!newEl.isEqualNode(curEl)) {
         // console.log(Array.from(newEl.attributes));
-        Array.from(newEl.attributes).forEach(attr => curEl.setAttribute(attr.name, attr.value))
+        Array.from(newEl.attributes).forEach(attr =>
+          curEl.setAttribute(attr.name, attr.value)
+        );
       }
-    })
-
-
+    });
   }
 
   _clear() {
-
     this._parentElement.innerHTML = '';
   }
 
@@ -63,8 +66,8 @@ export default class View {
       </div>
         `;
     this._clear();
-    this._parentElement.insertAdjacentHTML('afterbegin', markup)
-  }
+    this._parentElement.insertAdjacentHTML('afterbegin', markup);
+  };
 
   renderError(message = this._errorMessage) {
     const markup = `
@@ -78,7 +81,7 @@ export default class View {
       </div>
         `;
     this._clear();
-    this._parentElement.insertAdjacentHTML('afterbegin', markup)
+    this._parentElement.insertAdjacentHTML('afterbegin', markup);
   }
 
   renderSuccess(message = this._successMessage) {
@@ -93,6 +96,6 @@ export default class View {
       </div>
         `;
     this._clear();
-    this._parentElement.insertAdjacentHTML('afterbegin', markup)
+    this._parentElement.insertAdjacentHTML('afterbegin', markup);
   }
 }

@@ -5,6 +5,8 @@ import recipeView from './views/recipeView'
 import searchView from './views/searchView'
 import resultsView from './views/resultsView'
 import paginationView from './views/paginationView';
+import bookmarksView from './views/bookmarksView';
+
 
 // if (module.hot) {
 // module.hot.accept();  
@@ -15,7 +17,6 @@ const controlRecipes = async () => {
 
     // Get the ID from the window location hash and assign it to the 'id' variable
     const id = window.location.hash.slice(1);
-    // console.log(id);
 
     // Guard clause: If 'id' is falsy (empty), return and exit the function
     if (!id) return;
@@ -24,7 +25,8 @@ const controlRecipes = async () => {
     recipeView.renderSpinner();
 
     //0. update result view to mark selected search result
-    resultsView.render(model.getSearchResultsPage())
+    resultsView.update(model.getSearchResultsPage())
+    bookmarksView.update(model.state.bookmarks)
 
     //1.loading the recipe
     // Use the 'loadRecipe' method from the 'model' module to load the recipe data
@@ -75,15 +77,15 @@ const controlPagination = function (goToPage) {
 }
 
 const controlAddBookmark = function () {
-  console.log(model.state.recipe.bookmarked)
-
+//Add or remove a bookmark
   if (!model.state.recipe.bookmarked) model.addBookmark(model.state.recipe);
   else model.deleteBookmark(model.state.recipe.id);
 
-  // model.addBookmark(model.state.recipe)
-
-  // console.log(model.state.recipe);
+  //update recipe view
   recipeView.update(model.state.recipe)
+
+  //render bookmarks
+  bookmarksView.render(model.state.bookmarks)
 }
 
 const controlServings = function (newServings) {
