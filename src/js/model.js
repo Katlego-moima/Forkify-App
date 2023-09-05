@@ -94,19 +94,42 @@ export const updateServings = function (newServings) {
 
 }
 
-export const addBookmark = function (recipe) {
-    //add bookmark
-    state.bookmarks.push(recipe);
+const persistBookmarks = function () {
+  localStorage.setItem('bookmarks', JSON.stringify(state.bookmarks));
+};
 
-    //mark current recipe as bookmark
-    if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
-}
+export const addBookmark = function (recipe) {
+  //add bookmark
+  state.bookmarks.push(recipe);
+
+  //mark current recipe as bookmark
+  if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
+  persistBookmarks();
+};
 
 export const deleteBookmark = function (id) {
-    const index = state.bookmarks.findIndex(el => el.id === id)
-    // console.log(index);
-    state.bookmarks.splice(index, 1);
+  const index = state.bookmarks.findIndex(el => el.id === id);
+  // console.log(index);
+  state.bookmarks.splice(index, 1);
 
-    //mark current recipe as not bookmark
-    if (id === state.recipe.id) state.recipe.bookmarked = false;
-}
+  //mark current recipe as not bookmark
+  if (id === state.recipe.id) state.recipe.bookmarked = false;
+  persistBookmarks();
+};
+
+const init = function () {
+  const storage = localStorage.getItem('bookmarks');
+
+  if (storage) state.bookmarks = JSON.parse(storage);
+};
+
+init();
+
+// const clearBookmarks = function () {
+//   localStorage.clear('bookmarks');
+// };
+
+export const uploadRecipe = async function (newRecipe) {
+  console.log(Object.entries(newRecipe));
+  // const ingredients = Object.entries(newRecipe).filter(entry => )
+};
