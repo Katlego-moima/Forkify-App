@@ -617,8 +617,11 @@ const controlPagination = function(goToPage) {
     (0, _paginationViewDefault.default).render(_model.state.search);
 };
 const controlAddBookmark = function() {
-    _model.addBookmark(_model.state.recipe);
-    console.log(_model.state.recipe);
+    console.log(_model.state.recipe.bookmarked);
+    if (!_model.state.recipe.bookmarked) _model.addBookmark(_model.state.recipe);
+    else _model.deleteBookmark(_model.state.recipe.id);
+    // model.addBookmark(model.state.recipe)
+    // console.log(model.state.recipe);
     (0, _recipeViewDefault.default).update(_model.state.recipe);
 };
 const controlServings = function(newServings) {
@@ -2072,6 +2075,7 @@ parcelHelpers.export(exports, "loadSearchResults", ()=>loadSearchResults);
 parcelHelpers.export(exports, "getSearchResultsPage", ()=>getSearchResultsPage);
 parcelHelpers.export(exports, "updateServings", ()=>updateServings);
 parcelHelpers.export(exports, "addBookmark", ()=>addBookmark);
+parcelHelpers.export(exports, "deleteBookmark", ()=>deleteBookmark);
 var _config = require("./config");
 var _helpers = require("./helpers");
 const state = {
@@ -2099,6 +2103,9 @@ const loadRecipe = async function(id) {
             cookingTime: recipe.cooking_time,
             ingredients: recipe.ingredients
         };
+        //sum method returns true or false
+        if (state.bookmarks.some((bookmark)=>bookmark.id === id)) state.recipe.bookmarked = true;
+        else state.recipe.bookmarked = false;
     // console.log(state.recipe)
     } catch (error) {
         console.error(`${error} 😡`);
@@ -2109,7 +2116,7 @@ const loadSearchResults = async function(query) {
     try {
         state.search.query = query;
         const data = await (0, _helpers.getJSON)(`${(0, _config.API_URL)}/?search=${query}`);
-        console.log(data);
+        // console.log(data)
         state.search.results = data.data.recipes.map((rec)=>{
             return {
                 id: rec.id,
@@ -2144,6 +2151,13 @@ const addBookmark = function(recipe) {
     state.bookmarks.push(recipe);
     //mark current recipe as bookmark
     if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
+};
+const deleteBookmark = function(id) {
+    const index = state.bookmarks.findIndex((el)=>el.id === id);
+    // console.log(index);
+    state.bookmarks.splice(index, 1);
+    //mark current recipe as not bookmark
+    if (id === state.recipe.id) state.recipe.bookmarked = false;
 };
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./config":"k5Hzs","./helpers":"hGI1E"}],"k5Hzs":[function(require,module,exports) {
@@ -2851,7 +2865,7 @@ class RecipeView extends (0, _viewDefault.default) {
           </div>
           <button class="btn--round btn--bookmark">
             <svg class="">
-              <use href="${0, _iconsSvgDefault.default}#icon-bookmark ${this._data.bookmarked ? "-fill" : ""}"></use>
+              <use href="${0, _iconsSvgDefault.default}#icon-bookmark${this._data.bookmarked ? "-fill" : ""}"></use>
             </svg>
           </button>
         </div>
@@ -3216,15 +3230,13 @@ class View {
         const curElements = Array.from(this._parentElement.querySelectorAll("*"));
         newElements.forEach((newEl, i)=>{
             const curEl = curElements[i];
-            console.log(newEl.isEqualNode(curEl));
+            // console.log(newEl.isEqualNode(curEl));
             //Updates changed text
             if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== "") curEl.textContent = newEl.textContent;
             //updates changed attributes
             //notes: replacing all the attributes from curEl with the attributes from the newEl
-            if (!newEl.isEqualNode(curEl)) {
-                console.log(Array.from(newEl.attributes));
-                Array.from(newEl.attributes).forEach((attr)=>curEl.setAttribute(attr.name, attr.value));
-            }
+            if (!newEl.isEqualNode(curEl)) // console.log(Array.from(newEl.attributes));
+            Array.from(newEl.attributes).forEach((attr)=>curEl.setAttribute(attr.name, attr.value));
         });
     }
     _clear() {
@@ -3306,7 +3318,7 @@ class ResultsView extends (0, _viewDefault.default) {
     _errorMessage = "No recipes found for your query! Please try again :(";
     _message = "";
     _generateMarkup() {
-        console.log(this._data);
+        // console.log(this._data);
         return this._data.map(this._generateMarkupPreview).join("");
     }
     _generateMarkupPreview(result) {
@@ -3340,7 +3352,7 @@ class PaginationView extends (0, _viewDefault.default) {
     addHandlerClick(handler) {
         this._parentElement.addEventListener("click", function(e) {
             const btn = e.target.closest(".btn--inline");
-            console.log(btn);
+            // console.log(btn);
             if (!btn) return;
             const goToPage = +btn.dataset.goto;
             handler(goToPage);
@@ -3349,7 +3361,7 @@ class PaginationView extends (0, _viewDefault.default) {
     _generateMarkup() {
         const curPage = this._data.page;
         const numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage);
-        console.log(numPages);
+        // console.log(numPages);
         //Page 1 and there are no other pages
         if (curPage === 1 && numPages > 1) return `
            <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">

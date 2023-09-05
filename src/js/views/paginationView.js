@@ -3,35 +3,35 @@ import icons from '../../img/icons.svg'
 
 
 
-class PaginationView extends View{
+class PaginationView extends View {
 
-    _parentElement = document.querySelector('.pagination');
+  _parentElement = document.querySelector('.pagination');
 
-    addHandlerClick(handler) {
+  addHandlerClick(handler) {
 
-        this._parentElement.addEventListener('click', function(e) {
-            const btn = e.target.closest('.btn--inline')
-            console.log(btn);
+    this._parentElement.addEventListener('click', function (e) {
+      const btn = e.target.closest('.btn--inline')
+      // console.log(btn);
 
-            if (!btn) return;
+      if (!btn) return;
 
-            const goToPage = +btn.dataset.goto;
-            
-            handler(goToPage);
-        })
+      const goToPage = +btn.dataset.goto;
 
-    }
+      handler(goToPage);
+    })
 
-    _generateMarkup() {
+  }
 
-        const curPage = this._data.page;
+  _generateMarkup() {
 
-        const numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage)
-        console.log(numPages);
+    const curPage = this._data.page;
 
-        //Page 1 and there are no other pages
-        if (curPage === 1 && numPages > 1) {
-           return `
+    const numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage)
+    // console.log(numPages);
+
+    //Page 1 and there are no other pages
+    if (curPage === 1 && numPages > 1) {
+      return `
            <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
             <span>Page ${curPage + 1}</span>
             <svg class="search__icon">
@@ -39,11 +39,11 @@ class PaginationView extends View{
             </svg>
           </button>
            `;
-        }
+    }
 
-        //last page
-        if (curPage === numPages && numPages > 1) {
-            return `
+    //last page
+    if (curPage === numPages && numPages > 1) {
+      return `
              <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
             <svg class="search__icon">
               <use href="${icons}#icon-arrow-left"></use>
@@ -52,11 +52,11 @@ class PaginationView extends View{
           </button>
           
             `
-        }
-        //other page
+    }
+    //other page
 
-        if (curPage < numPages) {
-            return `
+    if (curPage < numPages) {
+      return `
             <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
            <svg class="search__icon">
              <use href="${icons}#icon-arrow-left"></use>
@@ -70,11 +70,11 @@ class PaginationView extends View{
           </svg>
         </button>
          `
-        }
-
-        //Page 1 and there are other pages
-        return ' '
     }
+
+    //Page 1 and there are other pages
+    return ' '
+  }
 }
 
 export default new PaginationView();

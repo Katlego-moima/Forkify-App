@@ -18,7 +18,7 @@ const controlRecipes = async () => {
     // console.log(id);
 
     // Guard clause: If 'id' is falsy (empty), return and exit the function
-    if(!id) return;
+    if (!id) return;
 
     // Call the 'renderSpinner' method of the 'recipeView' object to display a loading spinner
     recipeView.renderSpinner();
@@ -26,24 +26,24 @@ const controlRecipes = async () => {
     //0. update result view to mark selected search result
     resultsView.render(model.getSearchResultsPage())
 
-   //1.loading the recipe
-  // Use the 'loadRecipe' method from the 'model' module to load the recipe data
+    //1.loading the recipe
+    // Use the 'loadRecipe' method from the 'model' module to load the recipe data
     await model.loadRecipe(id)
 
     // Call the 'render' method of the 'recipeView' object and pass in the 'recipe' property from the 'state' object
     recipeView.render(model.state.recipe);
-    
+
   } catch (error) {
     recipeView.renderError();
   }
 }
 
-const controlSearchResults = async function(){
+const controlSearchResults = async function () {
   try {
 
     //get search query
     const query = searchView.getQuery();
-    if(!query) return;
+    if (!query) return;
 
     resultsView.renderSpinner();
 
@@ -56,7 +56,7 @@ const controlSearchResults = async function(){
     //render initial  pagination buttons
     paginationView.render(model.state.search)
 
-    
+
   } catch (error) {
     console.error(error);
   }
@@ -65,34 +65,39 @@ const controlSearchResults = async function(){
 controlSearchResults();
 
 
-const controlPagination = function(goToPage) {
+const controlPagination = function (goToPage) {
   //Render new results
   resultsView.render(model.getSearchResultsPage(goToPage));
 
   //render new pagination buttons
   paginationView.render(model.state.search)
-  
+
 }
 
-const controlAddBookmark = function() {
-  model.addBookmark(model.state.recipe)
+const controlAddBookmark = function () {
+  console.log(model.state.recipe.bookmarked)
 
-  console.log(model.state.recipe);
+  if (!model.state.recipe.bookmarked) model.addBookmark(model.state.recipe);
+  else model.deleteBookmark(model.state.recipe.id);
+
+  // model.addBookmark(model.state.recipe)
+
+  // console.log(model.state.recipe);
   recipeView.update(model.state.recipe)
 }
 
-const controlServings = function(newServings) {
+const controlServings = function (newServings) {
   //Update the recipe servings (in state)
   model.updateServings(newServings)
-  
+
   //Update the recipe view
   recipeView.update(model.state.recipe);
 }
 
 // Define an initialization function called 'init'
-const init = function() {
-// Call the 'addHandlerRender' method of the 'recipeView' object and pass in the 'controlRecipes' function as a callback
-// This sets up an event handler to render the recipe when triggered
+const init = function () {
+  // Call the 'addHandlerRender' method of the 'recipeView' object and pass in the 'controlRecipes' function as a callback
+  // This sets up an event handler to render the recipe when triggered
   recipeView.addHandlerRender(controlRecipes)
   recipeView.addHandlerUpdateServings(controlServings)
   recipeView.addHandlerAddBookmark(controlAddBookmark)
