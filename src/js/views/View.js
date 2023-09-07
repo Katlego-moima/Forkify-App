@@ -5,6 +5,16 @@ export default class View {
   _data;
   //assigning the value of data to a private property
   //public method
+
+  /**
+   * Render the received object to the DOM
+   * @param {Object | Object[]} data  The data to be rendered(e.g. recipe)
+   * @param {boolean} [render=true] If false create markup string instead of rendering to the DOM
+   * @returns {undefined | string} A markup is returned if render is false
+   * @this {Object} View instance
+   * @authorKatlego
+   * @todo Finish the implementation using react framework
+   */
   render(data, render = true) {
     if (!data || (Array.isArray(data) && data.length === 0))
       return this.renderError();
